@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="ISO-8859-1">
+  <title>Retirement Planner</title>
+  <link rel="stylesheet" href="basic.css">
+</head>
+
+<body>
+
+  <script>
+
+    fields = [];
+    const rmdTbl = [26.5, 25.5, 24.6, 23.7, 22.9, 22.0, 21.1, 20.2, 19.4, 18.5, 17.7, 16.8, 16.0, 15.2, 14.4, 13.7, 12.9, 12.2, 11.5, 10.8, 10.1, 9.5, 8.9, 8.4, 7.8, 7.3, 6.8, 6.4];
+
+
+    function store() {
+      for (const field of fields) {
+        localStorage.setItem(field, document.getElementById(field).value);
+      }
+
+    }
+
+    function compute() {
+
+      inflationRate = Number(document.getElementById("inflation").value) / 100.0;
+      investmentReturn = Number(document.getElementById("invret").value) / 100.0;
+      pretax = Number(document.getElementById("pretax").value); // IRA and 401k
+      posttax = Number(document.getElementById("posttax").value); // non retirement money
+      ss = Number(document.getElementById("ss").value);// social security before tax
+      ssAge = Number(document.getElementById("ssage").value);
+      obama = Number(document.getElementById("aca").value);
+      medicare = Number(document.getElementById("medicare").value);
+      taxRate = Number(document.getElementById("tax").value) / 100.0; // fed income tax rate
+      retAge = Number(document.getElementById("retage").value); // retirement age
+      curAge = Number(document.getElementById("curage").value);
+      spending = Number(document.getElementById("spend").value);
+      sev = Number(document.getElementById("sev").value);
+      preretincome = Number(document.getElementById("preret").value);
+      pre1 = Number(document.getElementById("pre1").value);
+      pre2 = Number(document.getElementById("pre2").value);
+      post1 = Number(document.getElementById("post1").value);
+      post2 = Number(document.getElementById("post2").value);
+      pre1age = Number(document.getElementById("pre1age").value);
+      pre2age = Number(document.getElementById("pre2age").value);
+      post1age = Number(document.getElementById("post1age").value);
+      post2age = Number(document.getElementById("post2age").value);
+
+      const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+      var output = "";
+
+      let endAge = 100;
+      let medicareAge = 65;
+      let rmdAge = 73;
+      let ssTaxPct = 85;
+
+      for (let age = curAge; age <= endAge; age++) {
+        curss = 0.0; // SS after tax
+        tax = 0.0;
+        totalSpend = 0.0;
+
+
+        if (age < retAge) {
+          totalSpend = spending;
+        }
+        else if (age <= medicareAge) {
+          totalSpend = spending + obama;
+        }
+        else {
+          totalSpend = spending + medicare;
+        }
+
+        // severance
+        if (age == retAge) {
+          posttax += sev * (1.0 - taxRate);
+          tax += (sev * taxRate);
+        }
+
+        // income
+        if (age < retAge) {
+          posttax += preretincome * (1.0 - taxRate);
+          tax += preretincome * taxRate;
+        }
+
+        // asset changes
+        if (age == pre1age) pretax += pre1;
+        if (age == pre2age) pretax += pre2;
+        if (age == post1age) posttax += post1;
+        if (age == post2age) posttax += post2;
+
+
+
+        // RMD
+        rmd = pretax / rmdTbl[age - rmdAge];
+        if (age >= rmdAge && pretax >= rmd) {
+          pretax -= rmd;
+          posttax += rmd * (1.0 - taxRate);
+          tax += rmd * taxRate;
+        } else if (age >= rmdAge && pretax > 0) {
+          rmd = pretax;
+          posttax += pretax * (1.0 - taxRate);
+          tax += pretax * taxRate;
+          pretax = 0.0;
+        } else {
+          rmd = 0.0;
+        }
+
+        // SS - ignore fractional year at start age
+        if (age > ssAge) {
+          curss = ss * (1.0 - taxRate * ssTaxPct / 100);
+          posttax += curss;
+          tax += ss * taxRate * ssTaxPct / 100;
+        }
+
+        // spend
+        if (posttax >= totalSpend) {
+          posttax -= totalSpend;
+        } else {
+          let s = totalSpend;
+          s -= posttax;
+          posttax = 0;
+          pretax -= (s * (1.0 + taxRate));
+        }
+
+        // investment
+        pretax = pretax * (1.0 + investmentReturn);
+
+        postearnings = posttax * investmentReturn;
+        posttax += postearnings * (1.0 - taxRate);
+        tax += postearnings * taxRate;
+
+
+        // inflation
+        pretax *= (1.0 - inflationRate);
+        posttax *= (1.0 - inflationRate);
+
+
+        if (pretax + posttax <= 0) {
+          output += `Age ${age} *** FAIL ***\n`;
+        }
+        else {
+          output += `Age ${age}\tTotal = ${fmt.format(pretax + posttax)}\tpretax = ${fmt.format(pretax)}\tposttax = ${fmt.format(posttax)}\tspending = ${fmt.format(totalSpend)}\tTax = ${fmt.format(tax)}`;
+          if (curss > 0) output += `\tSS = ${fmt.format(curss)}`;
+          if (rmd > 0) output += `\tRMD = ${fmt.format(rmd)}`;
+          output += `\n`;
+        }
+      }
+
+
+      document.getElementById("output").value = output;
+    }
+
+    function addInput(id, text, def) {
+      const form = document.getElementById('form1');
+      const label = document.createElement('label');
+      label.textContent = text;
+      form.appendChild(label);
+      const input = document.createElement('input');
+      input.setAttribute('type', 'text');
+      input.setAttribute('id', id);
+      input.setAttribute('value', def);
+      form.appendChild(input);
+      window['fields'].push(id);
+
+    }
+
+    function addBR() {
+      const form = document.getElementById('form1');
+      const br = document.createElement('br');
+      form.appendChild(br);
+    }
+
+    function load() {
+
+      for (const field of fields) {
+
+        var d = localStorage.getItem(field);
+        if (d) {
+          const elem = document.getElementById(field);
+          if (elem != null)
+            elem.value = d;
+        }
+
+      }
+    }
+
+    function reset() {
+      localStorage.clear();
+      load();
+      location.reload();
+    }
+
+    function init() {
+      addInput("curage", "Current Age", 55);
+      addBR();
+      addInput("retage", "Retirement Age", 65);
+      addBR();
+      addInput("preret", "Pre-Retirement Income", 70000);
+      addBR();
+      addInput("spend", "Spending per year without medical", 50000);
+      addBR();
+      addInput("ss", "Social Security", 40000);
+      addInput("ssage", "Social Security Age", 67);
+      addBR();
+      addInput("aca", "ACA/Medical Cost (retirement thru 65)", 0);
+      addBR();
+      addInput("medicare", "Medicare Cost", 15000);
+      addBR();
+      addInput("posttax", "Post Tax Assets", 250000);
+      addBR();
+      addInput("pretax", "Pre Tax Assets (IRA/401k)", 500000);
+      addBR();
+      addInput("invret", "Investment Return across ALL assets", 4);
+      addBR();
+      addInput("inflation", "Average Inflation throughout retirement", 3);
+      addBR();
+      addInput("tax", "Overall Income Tax Rate", 12);
+      addBR();
+      addInput("sev", "Severance", 0);
+      addBR();
+      addInput("pre1", "Pre Tax Change", 0);
+      addInput("pre1age", "Age", 75);
+      addBR();
+      addInput("pre2", "Pre Tax Change", 0);
+      addInput("pre2age", "Age", 75);
+      addBR();
+      addInput("post1", "Post Tax Change", 0);
+      addInput("post1age", "Age", 75);
+      addBR();
+      addInput("post2", "Post Tax Change", 0);
+      addInput("post2age", "Age", 75);
+      addBR();
+
+    }
+
+    window.onload = function wload() { init(); load(); }
+
+
+
+  </script>
+
+  <form id="form1">
+
+
+  </form>
+
+  <br>
+  <label>All values in today's dollars. Use yearly SS estimate from ssa.gov (minus whatever haircut you
+    predict)</label>
+
+  <br>
+  <button onclick="compute();">Calculate</button>
+  <button onclick="store();">Save</button>
+  <button onclick="reset();">Reset</button>
+  <br>
+  <br>
+  <textarea id="output" rows="45" cols="200"></textarea>
+</body>
+
+</html>
