@@ -38,6 +38,7 @@
       spending = Number(document.getElementById("spend").value);
       sev = Number(document.getElementById("sev").value);
       preretincome = Number(document.getElementById("preret").value);
+      postretincome = Number(document.getElementById("postret").value);
       pre1 = Number(document.getElementById("pre1").value);
       pre2 = Number(document.getElementById("pre2").value);
       post1 = Number(document.getElementById("post1").value);
@@ -82,6 +83,9 @@
         if (age < retAge) {
           posttax += preretincome * (1.0 - taxRate);
           tax += preretincome * taxRate;
+        } else {
+           posttax += postretincome * (1.0 - taxRate);
+          tax += postretincome * taxRate;
         }
 
         // asset changes
@@ -198,6 +202,8 @@
       addInput("retage", "Retirement Age", 65);
       addBR();
       addInput("preret", "Pre-Retirement Income", 70000);
+      addBR();
+      addInput("postret", "Post-Retirement Income", 0);
       addBR();
       addInput("spend", "Spending per year without medical", 50000);
       addBR();
