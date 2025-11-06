@@ -11,6 +11,6 @@ If you evenutally come to the conclusion that Retirement Age, Spending, and Infl
 
 
 11/25 - I asked copilot to generate a similar calculator based on all of my parameters and it did a better job in a few seconds.
-I asked it to critique my tool and it liked how i wrote functions to made adding new fields easier. 
+I asked it to critique my tool and it liked how i wrote functions to make adding new fields easier. 
 I'm so glad that I'm retired.
 
