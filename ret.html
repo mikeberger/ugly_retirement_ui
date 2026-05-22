@@ -84,7 +84,7 @@
           posttax += preretincome * (1.0 - taxRate);
           tax += preretincome * taxRate;
         } else {
-           posttax += postretincome * (1.0 - taxRate);
+          posttax += postretincome * (1.0 - taxRate);
           tax += postretincome * taxRate;
         }
 
@@ -119,7 +119,13 @@
         }
 
         // spend
-        if (posttax >= totalSpend) {
+        let maxspend = posttax + (pretax * (1 - taxRate));
+        if (totalSpend >= maxspend) {
+          posttax = 0;
+          pretax = 0;
+          totalSpend = maxspend;
+        }
+        else if (posttax >= totalSpend) {
           posttax -= totalSpend;
         } else {
           let s = totalSpend;
@@ -141,15 +147,10 @@
         posttax *= (1.0 - inflationRate);
 
 
-        if (pretax + posttax <= 0) {
-          output += `Age ${age} *** FAIL ***\n`;
-        }
-        else {
-          output += `Age ${age}\tTotal = ${fmt.format(pretax + posttax)}\tpretax = ${fmt.format(pretax)}\tposttax = ${fmt.format(posttax)}\tspending = ${fmt.format(totalSpend)}\tTax = ${fmt.format(tax)}`;
-          if (curss > 0) output += `\tSS = ${fmt.format(curss)}`;
-          if (rmd > 0) output += `\tRMD = ${fmt.format(rmd)}`;
-          output += `\n`;
-        }
+        output += `Age ${age}\tTotal = ${fmt.format(pretax + posttax)}\tpretax = ${fmt.format(pretax)}\tposttax = ${fmt.format(posttax)}\tspending = ${fmt.format(totalSpend)}\tTax = ${fmt.format(tax)}`;
+        if (curss > 0) output += `\tSS = ${fmt.format(curss)}`;
+        if (rmd > 0) output += `\tRMD = ${fmt.format(rmd)}`;
+        output += `\n`;
       }
 
 
