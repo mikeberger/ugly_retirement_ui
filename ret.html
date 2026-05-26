@@ -11,7 +11,9 @@
 
   <script>
 
-    fields = [];
+    "use strict";
+
+    var fields = [];
     const rmdTbl = [26.5, 25.5, 24.6, 23.7, 22.9, 22.0, 21.1, 20.2, 19.4, 18.5, 17.7, 16.8, 16.0, 15.2, 14.4, 13.7, 12.9, 12.2, 11.5, 10.8, 10.1, 9.5, 8.9, 8.4, 7.8, 7.3, 6.8, 6.4];
 
 
@@ -24,29 +26,30 @@
 
     function compute() {
 
-      inflationRate = Number(document.getElementById("inflation").value) / 100.0;
-      investmentReturn = Number(document.getElementById("invret").value) / 100.0;
-      pretax = Number(document.getElementById("pretax").value); // IRA and 401k
-      posttax = Number(document.getElementById("posttax").value); // non retirement money
-      ss = Number(document.getElementById("ss").value);// social security before tax
-      ssAge = Number(document.getElementById("ssage").value);
-      obama = Number(document.getElementById("aca").value);
-      medicare = Number(document.getElementById("medicare").value);
-      taxRate = Number(document.getElementById("tax").value) / 100.0; // fed income tax rate
-      retAge = Number(document.getElementById("retage").value); // retirement age
-      curAge = Number(document.getElementById("curage").value);
-      spending = Number(document.getElementById("spend").value);
-      sev = Number(document.getElementById("sev").value);
-      preretincome = Number(document.getElementById("preret").value);
-      postretincome = Number(document.getElementById("postret").value);
-      pre1 = Number(document.getElementById("pre1").value);
-      pre2 = Number(document.getElementById("pre2").value);
-      post1 = Number(document.getElementById("post1").value);
-      post2 = Number(document.getElementById("post2").value);
-      pre1age = Number(document.getElementById("pre1age").value);
-      pre2age = Number(document.getElementById("pre2age").value);
-      post1age = Number(document.getElementById("post1age").value);
-      post2age = Number(document.getElementById("post2age").value);
+      let inflationRate = Number(document.getElementById("inflation").value) / 100.0;
+      let investmentReturn = Number(document.getElementById("invret").value) / 100.0;
+      let pretax = Number(document.getElementById("pretax").value); // IRA and 401k
+      let posttax = Number(document.getElementById("posttax").value); // non retirement money
+      let ss = Number(document.getElementById("ss").value);// social security before tax
+      let ssAge = Number(document.getElementById("ssage").value);
+      let obama = Number(document.getElementById("aca").value);
+      let medicare = Number(document.getElementById("medicare").value);
+      let taxRate = Number(document.getElementById("tax").value) / 100.0; // fed income tax rate
+      let retAge = Number(document.getElementById("retage").value); // retirement age
+      let curAge = Number(document.getElementById("curage").value);
+      let spending = Number(document.getElementById("spend").value);
+      let sev = Number(document.getElementById("sev").value);
+      let preretincome = Number(document.getElementById("preret").value);
+      let postretincome = Number(document.getElementById("postret").value);
+      let pre1 = Number(document.getElementById("pre1").value);
+      let pre2 = Number(document.getElementById("pre2").value);
+      let post1 = Number(document.getElementById("post1").value);
+      let post2 = Number(document.getElementById("post2").value);
+      let pre1age = Number(document.getElementById("pre1age").value);
+      let pre2age = Number(document.getElementById("pre2age").value);
+      let post1age = Number(document.getElementById("post1age").value);
+      let post2age = Number(document.getElementById("post2age").value);
+
 
       const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -58,9 +61,9 @@
       let ssTaxPct = 85;
 
       for (let age = curAge; age <= endAge; age++) {
-        curss = 0.0; // SS after tax
-        tax = 0.0;
-        totalSpend = 0.0;
+        let curss = 0.0; // SS after tax
+        let tax = 0.0;
+        let totalSpend = 0.0;
 
 
         if (age < retAge) {
@@ -97,7 +100,9 @@
 
 
         // RMD
-        rmd = pretax / rmdTbl[age - rmdAge];
+        let index = age - rmdAge;
+        let divisor = index < rmdTbl.length ? rmdTbl[index] : rmdTbl[rmdTbl.length - 1];
+        let rmd = pretax / divisor;
         if (age >= rmdAge && pretax >= rmd) {
           pretax -= rmd;
           posttax += rmd * (1.0 - taxRate);
@@ -131,13 +136,13 @@
           let s = totalSpend;
           s -= posttax;
           posttax = 0;
-          pretax -= (s * (1.0 + taxRate));
+          pretax -= (s / (1.0 - taxRate));
         }
 
-        // investment
+         // investment
         pretax = pretax * (1.0 + investmentReturn);
 
-        postearnings = posttax * investmentReturn;
+        let postearnings = posttax * investmentReturn;
         posttax += postearnings * (1.0 - taxRate);
         tax += postearnings * taxRate;
 
@@ -167,7 +172,8 @@
       input.setAttribute('id', id);
       input.setAttribute('value', def);
       form.appendChild(input);
-      window['fields'].push(id);
+      fields.push(id);
+      
 
     }
 
